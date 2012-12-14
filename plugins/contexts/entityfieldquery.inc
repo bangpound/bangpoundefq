@@ -14,43 +14,43 @@
 $plugin = array(
   'title' => t("EntityFieldQuery"),
   'description' => t('EntityFieldQuery object.'),
-  'context' => 'entityfieldquery_content_context_entityfieldquery_create',
-  'edit form' => 'entityfieldquery_content_context_entityfieldquery_settings_form',
-  'get child' => 'entityfieldquery_content_context_entityfieldquery_get_child',
-  'get children' => 'entityfieldquery_content_context_entityfieldquery_get_children',
+  'context' => 'bangpoundefq_context_entityfieldquery_create',
+  'edit form' => 'bangpoundefq_context_entityfieldquery_settings_form',
+  'get child' => 'bangpoundefq_context_entityfieldquery_get_child',
+  'get children' => 'bangpoundefq_context_entityfieldquery_get_children',
 );
 
-function entityfieldquery_content_context_entityfieldquery_get_child($plugin, $parent, $child) {
-  $plugins = entityfieldquery_content_context_entityfieldquery_get_children($plugin, $parent);
+function bangpoundefq_context_entityfieldquery_get_child($plugin, $parent, $child) {
+  $plugins = bangpoundefq_context_entityfieldquery_get_children($plugin, $parent);
   return $plugins[$parent . ':' . $child];
 }
 
-function entityfieldquery_content_context_entityfieldquery_get_children($plugin, $parent) {
+function bangpoundefq_context_entityfieldquery_get_children($plugin, $parent) {
   $plugins = array();
-  foreach (ctools_get_plugins('entityfieldquery_content', 'queries') as $query) {
+  foreach (ctools_get_plugins('bangpoundefq', 'queries') as $query) {
     $plugins['entityfieldquery:'. $query['name']] = $query['handler']::info($plugin, $parent);
   }
   return $plugins;
 }
 
-function entityfieldquery_content_context_entityfieldquery_settings_form($form, &$form_state) {
+function bangpoundefq_context_entityfieldquery_settings_form($form, &$form_state) {
   $conf = &$form_state['conf'];
   $plugin = &$form_state['plugin'];
   list($parent, $child) = explode(':', $plugin['name']);
 
-  $query_plugin = ctools_get_plugins('entityfieldquery_content', 'queries', $child);
+  $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $child);
   $form = $query_plugin['handler']::editForm($form, $form_state);
 
   return $form;
 }
 
-function entityfieldquery_content_context_entityfieldquery_settings_form_submit($form, &$form_state) {
+function bangpoundefq_context_entityfieldquery_settings_form_submit($form, &$form_state) {
   foreach (array_keys($form_state['plugin']['defaults']) as $key) {
     $form_state['conf'][$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state['plugin']['defaults'][$key];
   }
 }
 
-function entityfieldquery_content_context_entityfieldquery_create($empty, $data = NULL, $conf = FALSE, $plugin = array()) {
+function bangpoundefq_context_entityfieldquery_create($empty, $data = NULL, $conf = FALSE, $plugin = array()) {
   $context = new ctools_context('entityfieldquery');
   $context->plugin = 'entityfieldquery';
 
@@ -60,7 +60,7 @@ function entityfieldquery_content_context_entityfieldquery_create($empty, $data 
 
   if ($conf) {
     list($parent, $child) = explode(':', $plugin['name']);
-    $query_plugin = ctools_get_plugins('entityfieldquery_content', 'queries', $child);
+    $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $child);
 
     $query = new $query_plugin['handler']($data);
     $context->data = $query->execute();

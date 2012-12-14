@@ -4,12 +4,26 @@ $plugin = array(
   'title' => t("Node list"),
   'description' => t('List of nodes.'),
   'handler' => 'NodeList',
+  'defaults' => array(
+    'bundles' => array(),
+    'range' => array(
+      'start' => NULL,
+      'length' => NULL,
+    ),
+    'pager' => array(
+      'limit' => '10',
+      'element' => NULL,
+    ),
+  ),
 );
 
-class NodeList extends EntityFieldQueryBase implements EntityFieldQueryContext, EntityFieldQueryContent {
+class NodeList extends EntityFieldQueryBase {
 
   function __construct($conf) {
     $this->entityCondition('entity_type', 'node');
+    $this->entityCondition('bundle', array_filter($conf['bundles']), 'IN');
+    $this->propertyCondition('status', 1);
+    $this->propertyOrderBy('created', 'desc');
     $this->range($conf['range']['start'], $conf['range']['length']);
   }
 
@@ -17,28 +31,21 @@ class NodeList extends EntityFieldQueryBase implements EntityFieldQueryContext, 
     return 'node';
   }
 
-  static function info(array $plugin, $parent) {
-    $info = $plugin;
-    $info['title'] = 'Node list';
-    $info['keyword'] = 'node_list';
-    $info['context name'] = 'node_list';
-    $info['name'] = $parent . ':node_list';
-    $info['description'] = t('Creates EFQ context from @class.', array('@class' => 'node_list'));
-    $info['defaults'] = array(
-      'range' => array(
-        'start' => NULL,
-        'length' => NULL,
-      ),
-      'pager' => array(
-        'limit' => '10',
-        'element' => NULL,
-      ),
-    );
-    return $info;
-  }
-
   static function editForm($form, &$form_state) {
     $conf = $form_state['conf'];
+
+    $entity_info = entity_get_info('node');
+
+    $options = array();
+    foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+      $options[$bundle_name] = $bundle_info['label'];
+    }
+    $form['bundles'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $options,
+      '#title' => t('Bundles'),
+      '#default_value' => $conf['bundles'],
+    );
 
     $form['range'] = array(
       '#type' => 'fieldset',
