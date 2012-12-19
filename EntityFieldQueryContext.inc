@@ -60,9 +60,8 @@ class BangpoundEFQContent implements EntityFieldQueryContent {
       }
     }
 
-    $form['query'] = $query_plugin['handler']::editForm($form, $form_state) + array(
-      '#tree' => FALSE,
-    );
+    $form['query'] = $query_plugin['handler']::editForm($form['query'], $form_state);
+    $form['query']['#tree'] = FALSE;
 
     if (count($options) > 1) {
       $form['view_mode'] = array(
@@ -87,6 +86,11 @@ class BangpoundEFQContent implements EntityFieldQueryContent {
     }
 
     return $form;
+  }
+
+  static function validateForm(&$form, &$form_state) {
+    $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $form_state['subtype_name']);
+    $query_plugin['handler']::validateForm($form['query'], $form_state);
   }
 
   function render($view_mode = 'full') {

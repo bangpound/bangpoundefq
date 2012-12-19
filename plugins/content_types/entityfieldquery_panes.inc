@@ -111,6 +111,14 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
   return $form;
 }
 
+
+/**
+ * Store form values in $conf.
+ */
+function bangpoundefq_entityfieldquery_panes_content_type_edit_form_validate(&$form, &$form_state) {
+  BangpoundEFQContent::validateForm($form, $form_state);
+}
+
 /**
  * Store form values in $conf.
  */

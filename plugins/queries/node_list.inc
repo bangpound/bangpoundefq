@@ -80,4 +80,13 @@ class NodeList extends EntityFieldQueryBase {
     );
     return $form;
   }
+
+  static function validateForm(&$form, &$form_state) {
+    if (empty($form_state['values']['range']['start'])) {
+      form_set_value($form['range']['start'], NULL, $form_state);
+    }
+    if (empty($form_state['values']['range']['length'])) {
+      form_set_value($form['range']['length'], NULL, $form_state);
+    }
+  }
 }
