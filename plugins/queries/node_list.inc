@@ -25,7 +25,10 @@ class NodeList extends EntityFieldQuery {
     $this->propertyCondition('status', 1);
     $this->propertyOrderBy('sticky', 'asc');
     $this->propertyOrderBy('created', 'desc');
-    $this->range($conf['range']['start'], $conf['range']['length']);
+    if (!empty($conf['range']['start']) || !empty($conf['range']['length'])) {
+      $this->range($conf['range']['start'], $conf['range']['length']);
+    }
+    $this->pager($conf['pager']['limit'], $conf['pager']['element']);
   }
 
   static function entityType() {
