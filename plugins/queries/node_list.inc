@@ -23,6 +23,7 @@ class NodeList extends EntityFieldQueryBase {
     $this->entityCondition('entity_type', 'node');
     $this->entityCondition('bundle', array_filter($conf['bundles']), 'IN');
     $this->propertyCondition('status', 1);
+    $this->propertyOrderBy('sticky', 'asc');
     $this->propertyOrderBy('created', 'desc');
     $this->range($conf['range']['start'], $conf['range']['length']);
   }
