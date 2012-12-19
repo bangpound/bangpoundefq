@@ -36,6 +36,7 @@ class NodeList extends EntityFieldQuery {
   }
 
   static function editForm($form, &$form_state) {
+    $form = array();
     $conf = $form_state['conf'];
 
     $entity_info = entity_get_info('node');
@@ -59,11 +60,13 @@ class NodeList extends EntityFieldQuery {
     $form['range']['start'] = array(
       '#type' => 'textfield',
       '#title' => 'Start',
+      '#size' => 10,
       '#default_value' => $conf['range']['start'],
     );
     $form['range']['length'] = array(
       '#type' => 'textfield',
       '#title' => 'Length',
+      '#size' => 10,
       '#default_value' => $conf['range']['length'],
     );
     $form['pager'] = array(
@@ -74,11 +77,13 @@ class NodeList extends EntityFieldQuery {
     $form['pager']['limit'] = array(
       '#type' => 'textfield',
       '#title' => 'Limit',
+      '#size' => 10,
       '#default_value' => $conf['pager']['limit'],
     );
     $form['pager']['element'] = array(
       '#type' => 'textfield',
       '#title' => 'Element',
+      '#size' => 10,
       '#default_value' => $conf['pager']['element'],
     );
     return $form;
