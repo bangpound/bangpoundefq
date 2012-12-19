@@ -95,9 +95,14 @@ class BangpoundEFQContent implements EntityFieldQueryContent {
 
   function render($view_mode = 'full') {
     $output = array();
-    foreach ($this->query->execute() as $entity_type => $entities) {
-      $output[] = entity_view($entity_type, $entities, $view_mode);
+    foreach ($this->query->execute() as $entity_type => $stubs) {
+      $entities = entity_load($entity_type, array_keys($stubs));
+      $output['content'][] = entity_view($entity_type, $entities, $view_mode);
     }
+    $output['pager'] = array(
+      '#markup' => theme('pager'),
+      '#weight' => 10,
+    );
     return $output;
   }
 }

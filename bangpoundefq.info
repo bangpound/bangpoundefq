@@ -3,4 +3,3 @@ description = Allows EntityFieldQuery content to be used in Panels, Dashboard an
 dependencies[] = ctools
 core = 7.x
 files[] = EntityFieldQueryContext.inc
-files[] = base.inc

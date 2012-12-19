@@ -17,7 +17,7 @@ $plugin = array(
   ),
 );
 
-class NodeList extends EntityFieldQueryBase {
+class NodeList extends EntityFieldQuery {
 
   function __construct($conf) {
     $this->entityCondition('entity_type', 'node');
