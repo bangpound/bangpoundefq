@@ -16,6 +16,7 @@ $plugin = array(
     'title' => '',
     'substitute' => TRUE,
     'view_mode' => 'full',
+    'more' => '',
   ),
 );
 
@@ -44,6 +45,12 @@ function bangpoundefq_entityfieldquery_panes_content_type_render($subtype, $conf
   $block->module = 'entityfieldquery';
   $block->delta  = 0;
   $block->title = $conf['title'];
+
+  if (!empty($conf['more'])) {
+    $block->more = array(
+      'href' => $conf['more'],
+    );
+  }
 
   return $block;
 }
@@ -105,6 +112,12 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
     $header = array(t('Keyword'), t('Value'));
     $form['contexts']['context'] = array('#markup' => theme('table', array('header' => $header, 'rows' => $rows)));
   }
+
+  $form['more'] = array(
+    '#type' => 'textfield',
+    '#default_value' => $conf['more'],
+    '#title' => t('More link'),
+  );
 
   $form = BangpoundEFQContent::editForm($form, $form_state);
 
