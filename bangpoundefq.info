@@ -4,3 +4,4 @@ dependencies[] = ctools
 core = 7.x
 stylesheets[all][] = bangpoundefq.css
 files[] = EntityFieldQueryContext.inc
+files[] = EntityFieldQueryContent.inc
