@@ -38,6 +38,7 @@ class BangpoundEFQContent implements EntityFieldQueryContent {
       }
     }
 
+    $form['query'] = array();
     $form['query'] = $query_plugin['handler']::editForm($form['query'], $form_state);
     $form['query']['#tree'] = FALSE;
 
