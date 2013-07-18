@@ -5,4 +5,3 @@ core = 7.x
 stylesheets[all][] = bangpoundefq.css
 files[] = EntityFieldQueryBase.inc
 files[] = EntityFieldQueryContext.inc
-files[] = EntityFieldQueryContent.inc

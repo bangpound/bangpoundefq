@@ -8,23 +8,23 @@
 
 $plugin = array(
   'title' => t('EntityFieldQuery'),
-  'description' => t('A simple query.'),
-  'category' => t('Content'),
-  'no title override' => TRUE,
-  'defaults' => array(
-    'admin_title' => '',
-    'title' => '',
-    'substitute' => TRUE,
-    'view_mode' => 'full',
-    'more' => '',
-  ),
+  'content type' => 'bangpoundefq_entityfieldquery_panes_content_type_content_type',
 );
 
-function bangpoundefq_entityfieldquery_panes_content_type_content_types($plugin) {
+function bangpoundefq_entityfieldquery_panes_content_type_content_type($subtype_id) {
+  $plugin = ctools_get_plugins('bangpoundefq', 'queries', $subtype_id);
+  return _bangpoundefq_entityfieldquery_panes_content_type_content_type($plugin);
+}
+
+/**
+ * Return all custom content types available.
+ */
+function bangpoundefq_entityfieldquery_panes_content_type_content_types() {
   $types = array();
-  foreach (ctools_get_plugins('bangpoundefq', 'queries') as $query) {
-    $types[$query['name']] = BangpoundEFQContent::info($query);
+  foreach (ctools_get_plugins('bangpoundefq', 'queries') as $id => $plugin) {
+    $types[$id] = _bangpoundefq_entityfieldquery_panes_content_type_content_type($plugin);
   }
+
   return $types;
 }
 
@@ -38,10 +38,21 @@ function bangpoundefq_entityfieldquery_panes_content_type_render($subtype, $conf
     $contexts = array($contexts);
   }
 
-  $handler = new BangpoundEFQContent($subtype, $conf);
+  $plugin = ctools_get_plugins('bangpoundefq', 'queries', $subtype);
+  $query = new $plugin['handler']($conf);
+
+  $output = array();
+  foreach ($query->execute() as $entity_type => $stubs) {
+    $entities = entity_load($entity_type, array_keys($stubs));
+    $output['content'][] = entity_view($entity_type, $entities, $conf['view_mode']);
+  }
+  $output['pager'] = array(
+    '#markup' => theme('pager'),
+    '#weight' => 10,
+  );
 
   $block = new stdClass();
-  $block->content = $handler->render($conf['view_mode']);
+  $block->content = $output;
   $block->module = 'entityfieldquery';
   $block->delta  = 0;
   $block->title = $conf['title'];
@@ -53,6 +64,26 @@ function bangpoundefq_entityfieldquery_panes_content_type_render($subtype, $conf
   }
 
   return $block;
+}
+
+/**
+ * Return an info array for a specific custom content type.
+ */
+function _bangpoundefq_entityfieldquery_panes_content_type_content_type($plugin) {
+  return array(
+    'name' => $plugin['name'],
+    'title' => $plugin['title'],
+    'category' => t('EntityFieldQuery'),
+    'handler' => $plugin['name'],
+    'no title override' => TRUE,
+    'defaults' => array(
+      'admin_title' => '',
+      'title' => '',
+      'substitute' => TRUE,
+      'view_mode' => 'full',
+      'more' => '',
+    ) + $plugin['defaults'],
+  );
 }
 
 /**
@@ -119,7 +150,42 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
     '#title' => t('More link'),
   );
 
-  $form = BangpoundEFQContent::editForm($form, $form_state);
+  $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $form_state['subtype_name']);
+  $entity_type = $query_plugin['handler']::entityType();
+  $entity_info = entity_get_info($entity_type);
+
+  $options = array();
+  if (!empty($entity_info['view modes'])) {
+    foreach ($entity_info['view modes'] as $mode => $settings) {
+      $options[$mode] = $settings['label'];
+    }
+  }
+
+  $form['query'] = array();
+  $form['query'] = $query_plugin['handler']::editForm($form['query'], $form_state);
+  $form['query']['#tree'] = FALSE;
+
+  if (count($options) > 1) {
+    $form['view_mode'] = array(
+      '#type' => 'select',
+      '#options' => $options,
+      '#title' => t('View mode'),
+      '#default_value' => $conf['view_mode'],
+    );
+  }
+  else {
+    $form['view_mode_info'] = array(
+      '#type' => 'item',
+      '#title' => t('View mode'),
+      '#description' => t('Only one view mode is available for this entity type.'),
+      '#markup' => $options ? current($options) : t('Default'),
+    );
+
+    $form['view_mode'] = array(
+      '#type' => 'value',
+      '#value' => $options ? key($options) : 'default',
+    );
+  }
 
   return $form;
 }
@@ -129,17 +195,16 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
  * Store form values in $conf.
  */
 function bangpoundefq_entityfieldquery_panes_content_type_edit_form_validate(&$form, &$form_state) {
-  BangpoundEFQContent::validateForm($form, $form_state);
+  $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $form_state['subtype_name']);
+  $query_plugin['handler']::validateForm($form['query'], $form_state);
 }
 
 /**
  * Store form values in $conf.
  */
 function bangpoundefq_entityfieldquery_panes_content_type_edit_form_submit(&$form, &$form_state) {
-  foreach (array('plugin', 'subtype') as $plugin) {
-    foreach (array_keys($form_state[$plugin]['defaults']) as $key) {
-      $form_state['conf'][$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state[$plugin]['defaults'][$key];
-    }
+  foreach (array_keys($form_state['subtype']['defaults']) as $key) {
+    $form_state['conf'][$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state['subtype']['defaults'][$key];
   }
 }
 
