@@ -38,13 +38,13 @@ function bangpoundefq_entityfieldquery_panes_content_type_render($subtype, $conf
     $contexts = array($contexts);
   }
 
-  $plugin = ctools_get_plugins('bangpoundefq', 'queries', $subtype);
-  $query = new $plugin['handler']($conf);
+  $class = ctools_plugin_load_class('bangpoundefq', 'queries', $subtype, 'handler');
+  $query = new $class($conf);
 
   $output = array();
   foreach ($query->execute() as $entity_type => $stubs) {
     $entities = entity_load($entity_type, array_keys($stubs));
-    $output['content'][] = entity_view($entity_type, $entities, $conf['view_mode']);
+    $output['content'][] = entity_view($entity_type, $entities, $conf['view_mode'][$entity_type]);
   }
   $output['pager'] = array(
     '#markup' => theme('pager'),
@@ -150,41 +150,47 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
     '#title' => t('More link'),
   );
 
-  $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $form_state['subtype_name']);
-  $entity_type = $query_plugin['handler']::entityType();
-  $entity_info = entity_get_info($entity_type);
-
-  $options = array();
-  if (!empty($entity_info['view modes'])) {
-    foreach ($entity_info['view modes'] as $mode => $settings) {
-      $options[$mode] = $settings['label'];
-    }
-  }
+  $class = ctools_plugin_load_class('bangpoundefq', 'queries', $form_state['subtype_name'], 'handler');
 
   $form['query'] = array();
-  $form['query'] = $query_plugin['handler']::editForm($form['query'], $form_state);
+  $form['query'] = $class::editForm($form['query'], $form_state);
   $form['query']['#tree'] = FALSE;
 
-  if (count($options) > 1) {
-    $form['view_mode'] = array(
-      '#type' => 'select',
-      '#options' => $options,
-      '#title' => t('View mode'),
-      '#default_value' => $conf['view_mode'],
-    );
-  }
-  else {
-    $form['view_mode_info'] = array(
-      '#type' => 'item',
-      '#title' => t('View mode'),
-      '#description' => t('Only one view mode is available for this entity type.'),
-      '#markup' => $options ? current($options) : t('Default'),
-    );
+  $form['view_mode'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('View modes'),
+    '#tree' => TRUE,
+    '#description' => 'Select the view mode for the entity types that may be returned.',
+  );
+  $entity_info = entity_get_info();
+  foreach ($entity_info as $entity_type => $info) {
 
-    $form['view_mode'] = array(
-      '#type' => 'value',
-      '#value' => $options ? key($options) : 'default',
-    );
+    // Temporarily only support one entity type.
+    if ($entity_type != $class::entityType()) {
+      continue;
+    }
+
+    $options = array();
+    if (!empty($info['view modes'])) {
+      foreach ($info['view modes'] as $mode => $settings) {
+        $options[$mode] = $settings['label'];
+      }
+    }
+
+    if (count($options) > 1) {
+      $form['view_mode'][$entity_type] = array(
+        '#type' => 'select',
+        '#options' => $options,
+        '#title' => $info['label'],
+        '#default_value' => isset($conf['view_mode'][$entity_type]) ? $conf['view_mode'][$entity_type] : 'default',
+      );
+    }
+    else {
+      $form['view_mode'][$entity_type] = array(
+        '#type' => 'value',
+        '#value' => $options ? key($options) : 'default',
+      );
+    }
   }
 
   return $form;
@@ -195,8 +201,9 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form($form, &$for
  * Store form values in $conf.
  */
 function bangpoundefq_entityfieldquery_panes_content_type_edit_form_validate(&$form, &$form_state) {
-  $query_plugin = ctools_get_plugins('bangpoundefq', 'queries', $form_state['subtype_name']);
-  $query_plugin['handler']::validateForm($form['query'], $form_state);
+  $class = ctools_plugin_load_class('bangpoundefq', 'queries', $form_state['subtype_name'], 'handler');
+
+  $class::validateForm($form['query'], $form_state);
 }
 
 /**
@@ -204,7 +211,13 @@ function bangpoundefq_entityfieldquery_panes_content_type_edit_form_validate(&$f
  */
 function bangpoundefq_entityfieldquery_panes_content_type_edit_form_submit(&$form, &$form_state) {
   foreach (array_keys($form_state['subtype']['defaults']) as $key) {
-    $form_state['conf'][$key] = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state['subtype']['defaults'][$key];
+    $value = isset($form_state['values'][$key]) ? $form_state['values'][$key] : $form_state['subtype']['defaults'][$key];
+    if ($key == 'bundles') {
+      foreach ($value as $entity_type => &$bundles) {
+        $bundles = array_keys(array_filter($bundles));
+      }
+    }
+    $form_state['conf'][$key] = $value;
   }
 }
 
@@ -230,7 +243,7 @@ function bangpoundefq_entityfieldquery_panes_content_type_admin_info($subtype, $
   $info = array();
 
   $block = new stdClass;
-  $block->title = 'Title';
-  $block->content = 'Content';
+  $block->title = $conf['title'];
+  $block->content = '<pre>'. json_encode($conf) .'</pre>';
   return $block;
 }

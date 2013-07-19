@@ -5,12 +5,12 @@ abstract class EntityFieldQueryBase extends EntityFieldQuery {
   public static $entityType;
 
   function __construct($conf) {
-    $bundles = array_filter($conf['bundles']);
     if (!empty(static::$entityType)) {
       $this->entityCondition('entity_type', static::$entityType);
-    }
-    if (!empty($bundles)) {
-      $this->entityCondition('bundle', array_filter($conf['bundles']), 'IN');
+      $bundles = $conf['bundles'];
+      if (!empty($bundles[static::$entityType])) {
+        $this->entityCondition('bundle', $conf['bundles'][static::$entityType]);
+      }
     }
     if (!empty($conf['range']['start']) || !empty($conf['range']['length'])) {
       $this->range($conf['range']['start'], $conf['range']['length']);
@@ -25,18 +25,29 @@ abstract class EntityFieldQueryBase extends EntityFieldQuery {
   static function editForm($form, &$form_state) {
     $conf = $form_state['conf'];
 
-    $entity_info = entity_get_info(static::$entityType);
-
-    $options = array();
-    foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
-      $options[$bundle_name] = $bundle_info['label'];
-    }
     $form['bundles'] = array(
-      '#type' => 'checkboxes',
-      '#options' => $options,
+      '#type' => 'fieldset',
       '#title' => t('Bundles'),
-      '#default_value' => $conf['bundles'],
+      '#tree' => TRUE,
     );
+    $entity_info = entity_get_info();
+    foreach ($entity_info as $entity_type => $info) {
+
+      // Temporarily only support one entity type.
+      if ($entity_type != static::entityType()) {
+        continue;
+      }
+      $options = array();
+      foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+        $options[$bundle_name] = $bundle_info['label'];
+      }
+      $form['bundles'][$entity_type] = array(
+        '#type' => 'checkboxes',
+        '#title' => $info['label'],
+        '#options' => $options,
+        '#default_value' => isset($conf['bundles'][$entity_type]) ? isset($conf['bundles'][$entity_type]) : array(),
+      );
+    }
 
     $form['range'] = array(
       '#type' => 'fieldset',

@@ -25,6 +25,10 @@ function bangpoundefq_ctools_plugin_directory($owner, $plugin_type) {
  * Implements hook_ctools_plugin_type().
  */
 function bangpoundefq_ctools_plugin_type() {
-  $plugins['queries'] = array();
+  $plugins['queries'] = array(
+    'classes' => array(
+      'handler',
+    ),
+  );
   return $plugins;
 }
