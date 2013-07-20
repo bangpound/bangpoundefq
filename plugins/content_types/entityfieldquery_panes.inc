@@ -1,5 +1,7 @@
 <?php
 
+use Symfony\Component\Yaml\Dumper;
+
 /**
  * @file
  * Content type plugin to allow Views to be exposed as a display type,
@@ -244,6 +246,10 @@ function bangpoundefq_entityfieldquery_panes_content_type_admin_info($subtype, $
 
   $block = new stdClass;
   $block->title = $conf['title'];
-  $block->content = '<pre>'. json_encode($conf) .'</pre>';
+  $dumper = new Dumper();
+  unset($conf['admin_title']);
+  unset($conf['title']);
+  $yaml = $dumper->dump($conf, 3);
+  $block->content = '<pre>'. $yaml .'</pre>';
   return $block;
 }
