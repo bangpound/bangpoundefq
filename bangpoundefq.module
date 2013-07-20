@@ -13,7 +13,7 @@
  * where our content_type plugins are.
  */
 function bangpoundefq_ctools_plugin_directory($owner, $plugin_type) {
-  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+  if ($owner == 'ctools' && ($plugin_type == 'content_types' || $plugin_type == 'contexts')) {
     return 'plugins/' . $plugin_type;
   }
   if ($owner == 'bangpoundefq') {
