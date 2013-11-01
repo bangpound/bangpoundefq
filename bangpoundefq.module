@@ -3,9 +3,9 @@
 /**
  * @file bangpoundefq.module
  *
- * Provides views as panels content, configurable by the administrator.
- * Each view provided as panel content must be configured in advance,
- * but once configured, building panels with views is a little bit simpler.
+ * Provides EFQ as panels content, configurable by the administrator.
+ * Each EFQ provided as panel content must be configured in advance,
+ * but once configured, building panels with EFQ is a little bit simpler.
  */
 
 /**
