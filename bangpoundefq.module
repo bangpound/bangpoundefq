@@ -7,28 +7,3 @@
  * Each EFQ provided as panel content must be configured in advance,
  * but once configured, building panels with EFQ is a little bit simpler.
  */
-
-/**
- * Implementation of hook_ctools_plugin_dierctory() to let the system know
- * where our content_type plugins are.
- */
-function bangpoundefq_ctools_plugin_directory($owner, $plugin_type) {
-  if ($owner == 'ctools' && ($plugin_type == 'content_types' || $plugin_type == 'contexts')) {
-    return 'plugins/' . $plugin_type;
-  }
-  if ($owner == 'bangpoundefq') {
-    return 'plugins/'. $plugin_type;
-  }
-}
-
-/**
- * Implements hook_ctools_plugin_type().
- */
-function bangpoundefq_ctools_plugin_type() {
-  $plugins['queries'] = array(
-    'classes' => array(
-      'handler',
-    ),
-  );
-  return $plugins;
-}
