@@ -26,3 +26,124 @@ function bangpoundefq_ctools_plugin_api($module, $api) {
     return array('version' => 1);
   }
 }
+
+/**
+ * @see system_theme()
+ */
+function bangpoundefq_theme($existing, $type, $theme, $path) {
+  return array(
+    'pager__mini' => array(
+      'variables' => array('tags' => array(), 'element' => 0, 'parameters' => array(), 'quantity' => 9),
+    ),
+  );
+}
+
+/**
+ * @param QueryAlterableInterface $query
+ */
+function bangpoundefq_query_taxonomy_efq_alter(QueryAlterableInterface $query) {
+  /* @var $query SelectQuery */
+  $query->join('taxonomy_term_hierarchy', NULL, 'taxonomy_term_data.tid = taxonomy_term_hierarchy.tid');
+  /* @var $efq EntityFieldQuery */
+  $efq = $query->getMetaData('entity_field_query');
+  foreach ($efq->propertyConditions as &$propertyCondition) {
+    if ($propertyCondition['column'] == 'parent') {
+      $conditions = &$query->conditions();
+      foreach (element_children($query->conditions()) as $key) {
+        if ($conditions[$key]['field'] == 'taxonomy_term_data.parent') {
+          $conditions[$key]['field'] = $propertyCondition['column'] = 'taxonomy_term_hierarchy.parent';
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_pre_alter()
+ *
+ * @param $plugin
+ * @param $info
+ */
+function bangpoundefq_ctools_plugin_pre_alter(&$plugin, &$info) {
+
+  // Extend the entitylist pager content type plugin.
+  if ($info['module'] == 'ctools' && $info['type'] == 'content_types'
+    && $plugin['module'] == 'entitylist' && $plugin['name'] == 'pager') {
+
+    if ($plugin['render callback'] == 'entitylist_ctools_pager_render'
+      && $plugin['edit form'] == 'entitylist_ctools_pager_edit_form') {
+
+      $plugin['render callback'] = 'bangpoundefq_ctools_pager_render';
+      $plugin['edit form'] = 'bangpoundefq_ctools_pager_edit_form';
+      $plugin['defaults'] = array(
+        'type' => 'full',
+      );
+    }
+  }
+}
+
+/**
+ * @see entitylist_ctools_pager_edit_form().
+ */
+function bangpoundefq_ctools_pager_edit_form($form, &$form_state) {
+  $form = entitylist_ctools_pager_edit_form($form, $form_state);
+  $conf = $form_state['conf'];
+  $plugin = $form_state['plugin'];
+  $options = array(
+    'full' => 'Default',
+  );
+  $hooks = theme_get_registry();
+  foreach (preg_grep('#^pager__#i', array_keys(theme_get_registry())) as $hook) {
+    $keys = explode('__', $hook);
+    $options[$keys[1]] = $keys[1];
+  }
+  $form['type'] = array(
+    '#type' => 'select',
+    '#title' => t('Pager type'),
+    '#options' => $options,
+    '#default_value' => isset($conf['type']) ? $conf['type'] : $plugin['defaults']['type'],
+  );
+  return $form;
+}
+
+function bangpoundefq_ctools_pager_edit_form_submit($form, &$form_state) {
+  entitylist_ctools_pager_edit_form_submit($form, $form_state);
+
+  $conf = &$form_state['conf'];
+  // Save values from the form.
+  foreach (array('type') as $key) {
+    $conf[$key] = $form_state['values'][$key];
+  }
+}
+
+
+/**
+ * @param $subtype
+ * @param $conf
+ * @param $panel_args
+ * @param $context
+ * @return stdClass
+ * @see entitylist_ctools_pager_render().
+ */
+function bangpoundefq_ctools_pager_render($subtype, $conf, $panel_args, $context) {
+  $block = new stdClass();
+  $block->module  = 'entitylist';
+  $block->content = NULL;
+
+  // Get the list.
+  $list = entitylist_list_load_from_context($context);
+  $pager = $list->getPager();
+  if (!$pager) {
+    return $block;
+  }
+  $list->initializePager();
+  $block->content = theme('pager__'. $conf['type'], array('element' => $pager['element']));
+  return $block;
+}
+
+/**
+ * @see theme_pager
+ */
+function theme_pager__mini($variables) {
+  return theme('views_mini_pager', $variables);
+}
