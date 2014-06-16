@@ -7,7 +7,6 @@ abstract class NodeListEFQ extends EntityFieldQuery implements EntityListEFQ {
       ->propertyCondition('status', 1)
       ->propertyOrderBy('sticky', 'desc')
       ->propertyOrderBy('created', 'desc');
-    return $this;
   }
 
   static function entityType() {

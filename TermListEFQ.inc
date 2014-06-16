@@ -7,7 +7,6 @@ class TermListEFQ extends EntityFieldQuery implements EntityListEFQ {
       ->entityCondition('bundle', $arguments[0]->data->machine_name)
       ->propertyOrderBy('weight', 'asc')
       ->addTag('taxonomy_efq');
-    return $this;
   }
 
   static function entityType() {
