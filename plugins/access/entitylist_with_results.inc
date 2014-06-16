@@ -14,7 +14,9 @@ $plugin = array(
  * Check for access.
  */
 function bangpoundefq_entitylist_with_results_access_check($conf, $context, $plugin) {
+  /** @var \Entitylist $list */
   $list = entitylist_list_load_from_context($context);
+  $list->buildQuery();
   return ($list->count() > 0);
 }
 
