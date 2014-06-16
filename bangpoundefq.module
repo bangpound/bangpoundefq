@@ -147,3 +147,49 @@ function bangpoundefq_ctools_pager_render($subtype, $conf, $panel_args, $context
 function theme_pager__mini($variables) {
   return theme('views_mini_pager', $variables);
 }
+
+/**
+ * Implements hook_entitylist_handlers().
+ */
+function bangpoundefq_entitylist_handlers() {
+  $path = drupal_get_path('module', 'bangpoundefq') . '/handlers';
+  $handlers = array();
+
+  if (module_exists('menu_block')) {
+    $handlers['EntityListHandlerMenuTree'] = array(
+      'name' => 'Menu Tree',
+      'description' => 'Fetches the child entities of a menu item.',
+      'handler' => array(
+        'class' => 'EntityListHandlerMenuTree',
+        'file' => 'EntityListHandlerMenuTree.inc',
+        'path' => $path,
+      ),
+    );
+  }
+  return $handlers;
+}
+
+/**
+ * Collects node links from a given menu tree recursively.
+ *
+ * @param $tree
+ *   The menu tree you wish to collect node links from.
+ * @param $entity_links
+ *   An array in which to store the collected node links.
+ */
+function bangpoundefq_menu_tree_collect_entity_links(&$tree, &$entity_links, $entity_type) {
+  $info = entity_get_info($entity_type);
+  $path = preg_replace('/%' . DRUPAL_PHP_FUNCTION_PATTERN . '/', '%', $info['path']);
+  foreach ($tree as $key => $v) {
+    if ($tree[$key]['link']['router_path'] == $path) {
+      $entity_id = substr($tree[$key]['link']['link_path'], strlen($path) - 1);
+      if (is_numeric($entity_id)) {
+        $entity_links[$entity_id][$tree[$key]['link']['mlid']] = &$tree[$key]['link'];
+        $tree[$key]['link']['access'] = FALSE;
+      }
+    }
+    if ($tree[$key]['below']) {
+      bangpoundefq_menu_tree_collect_entity_links($tree[$key]['below'], $entity_links, $entity_type);
+    }
+  }
+}
