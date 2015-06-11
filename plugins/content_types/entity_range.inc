@@ -16,6 +16,7 @@ $plugin = array(
   ),
   'admin title' => 'bangpoundefq_ctools_entity_admin_title',
   'admin info' => 'bangpoundefq_ctools_entity_admin_info',
+  'admin css' => 'bangpoundefq.css',
   'render callback' => 'bangpoundefq_ctools_entity_render',
   'edit form' => 'bangpoundefq_ctools_entity_form',
 );

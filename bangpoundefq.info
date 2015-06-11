@@ -3,7 +3,6 @@ description = Allows EntityFieldQuery content to be used in Panels, Dashboard an
 dependencies[] = ctools
 dependencies[] = entitylist
 core = 7.x
-stylesheets[all][] = bangpoundefq.css
 package = !&#
 files[] = NodeListEFQ.inc
 files[] = PromotedNodeListEFQ.inc
